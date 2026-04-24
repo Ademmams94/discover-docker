@@ -1,0 +1,53 @@
+services:
+  database:
+    build:
+      context: ./database
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: usr
+      POSTGRES_PASSWORD: pwd
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend-api
+    depends_on:
+      - database
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  httpd:
+    build:
+      context: ./http-server
+    container_name: my-http-server
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+      - "8090:8080"
+    depends_on:
+      - database
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+
+volumes:
+  pgdata:
